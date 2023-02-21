@@ -30,9 +30,8 @@ def get_html_soup(url:str) -> bs4.BeautifulSoup:
     soup = BeautifulSoup(website.content, 'html.parser')
     return soup
 
-
 def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list) -> list:
-    """_summary_
+    """Adds the text of the specified tags to a list 
 
     Args:
         soup (bs4.BeautifulSoup): The web page html soup
@@ -48,6 +47,24 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list)
 
     return values 
 
+def create_current_player_points_dictionary(player_names: list, player_points: list) -> dict:
+    """Creates a dictionary of players with key value pairs of player name and player points 
+
+    Args:
+        player_names (list): List of all the player names
+        player_points (list): List of all the player points 
+
+    Returns:
+        dict: key value pairs of names and points  
+    """ 
+    players = {}
+
+    for name, points in zip(player_names, player_points):
+        players[name] = points
+    
+    return players
+
+
 if __name__ == "__main__":
     player_names = []
     player_points = []
@@ -55,11 +72,6 @@ if __name__ == "__main__":
         soup = get_html_soup(URLS[url])
         player_names = parse_tags_from_soup(soup, CLASSES[0], player_names)
         player_points = parse_tags_from_soup(soup, CLASSES[1], player_points)
-    
-    print(player_names, player_points)
-    print(len(player_names), len(player_points))
 
-
-# Next Steps
-    # Add the 51-100 and 101-150 players to the lists of players and points
-    # Parse the two lists into one dictionary of key value pairs of player_name and player_points
+    players = create_current_player_points_dictionary(player_names, player_points)
+    print(players)
