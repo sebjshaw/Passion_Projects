@@ -48,11 +48,6 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
 
     return values 
 
-
-# def create_player_points_dict():
-# This function will return a dict, key value pairs of player_name and player_points
-
-
 soup = get_html_soup(URLS["0-50"])
 player_names = parse_tags_from_soup(soup, CLASSES[0])
 player_points = parse_tags_from_soup(soup, CLASSES[1])
@@ -60,3 +55,6 @@ print(player_names, player_points)
 print(len(player_names), len(player_points))
 
 
+# Next Steps
+    # Add the 51-100 and 101-150 players to the lists of players and points
+    # Parse the two lists into one dictionary of key value pairs of player_name and player_points
