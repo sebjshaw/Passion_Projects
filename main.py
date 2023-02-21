@@ -48,11 +48,13 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
 
     return values 
 
-soup = get_html_soup(URLS["0-50"])
-player_names = parse_tags_from_soup(soup, CLASSES[0])
-player_points = parse_tags_from_soup(soup, CLASSES[1])
-print(player_names, player_points)
-print(len(player_names), len(player_points))
+if __name__ == "__main__":
+    soup = get_html_soup(URLS["0-50"])
+    player_names = parse_tags_from_soup(soup, CLASSES[0])
+    player_points = parse_tags_from_soup(soup, CLASSES[1])
+    
+    print(player_names, player_points)
+    print(len(player_names), len(player_points))
 
 
 # Next Steps
