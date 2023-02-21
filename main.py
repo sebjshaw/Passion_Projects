@@ -31,27 +31,30 @@ def get_html_soup(url:str) -> bs4.BeautifulSoup:
     return soup
 
 
-def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
+def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list) -> list:
     """_summary_
 
     Args:
         soup (bs4.BeautifulSoup): The web page html soup
         class_name (str): The name of the class that is being searched 
+        values (list): The list of values to be added to 
 
     Returns:
         list: a list of the desired values  
     """
 
-    values = []
     for value in soup.find_all("td", class_=class_name)[:50]:
         values.append(value.text)
 
     return values 
 
 if __name__ == "__main__":
-    soup = get_html_soup(URLS["0-50"])
-    player_names = parse_tags_from_soup(soup, CLASSES[0])
-    player_points = parse_tags_from_soup(soup, CLASSES[1])
+    player_names = []
+    player_points = []
+    for url in URLS:
+        soup = get_html_soup(URLS[url])
+        player_names = parse_tags_from_soup(soup, CLASSES[0], player_names)
+        player_points = parse_tags_from_soup(soup, CLASSES[1], player_points)
     
     print(player_names, player_points)
     print(len(player_names), len(player_points))
