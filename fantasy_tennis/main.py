@@ -31,7 +31,7 @@ MY_TEAM = [
 def import_csv_as_dict() -> dict:
 
     last_week_points = {}
-    with open('/Users/seb/Desktop/passion_projects/fantasty_tennis/players.csv', 'r') as f:
+    with open('/Users/seb/Desktop/passion_projects/fantasy_tennis/players.csv', 'r') as f:
         for row in f:
             data = row.split(',')
             last_week_points[data[0]] = data[1][:-1]
@@ -126,7 +126,9 @@ def return_points_difference_for_team(team: list, difference: dict) -> dict:
             team_points[player] = difference[player]
         except:
             team_points[player] = 0
-            print(f"{player} currently not in top 250 or fallen out of top 250")
+            with open("team_points.txt", "w") as f:
+                f.write(f"{player} currently not in top 250 or fallen out of top 250 \n")
+            # print(f"{player} currently not in top 250 or fallen out of top 250")
     
     return team_points
 
@@ -150,7 +152,7 @@ def export_dict_to_csv(players_dict: dict):
         players_dict (dict): dictionary of players names and points
     """
 
-    with open('/Users/seb/Desktop/passion_projects/fantasty_tennis/players.csv', 'w') as f:
+    with open('/Users/seb/Desktop/passion_projects/fantasy_tennis/players.csv', 'w') as f:
         for player in players_dict:
             f.write(f"{player},{players_dict[player]}\n")
 
