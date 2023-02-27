@@ -130,16 +130,18 @@ def return_points_difference_for_team(team: list, difference: dict) -> dict:
     
     return team_points
 
-def print_team_points(team_difference: dict):
+def create_team_points_txt(team_difference: dict):
     """Print the team and the points one this week in an aesthetic manner
 
     Args:
         team_difference (dict): Team points difference from last week 
     """
 
-    for player in team_difference:
-        if team_difference[player] != 0:
-            print(f"{player} gained {team_difference[player]} points")
+    with open("team_points.txt", "w") as f:
+        for player in team_difference:
+            # if team_difference[player] != 0:
+            f.write(f"{player} gained {team_difference[player]} points \n")
+                # print(f"{player} gained {team_difference[player]} points")
 
 def export_dict_to_csv(players_dict: dict):
     """Takes the dictionary of player names and points and saves the data as a csv
@@ -176,7 +178,7 @@ if __name__ == "__main__":
     # dictionary of player differences in team 
     team_difference = return_points_difference_for_team(MY_TEAM, difference)
     
-    print_team_points(team_difference)
+    create_team_points_txt(team_difference)
 
     # save current weeks points as new csv
     export_dict_to_csv(current_week)
