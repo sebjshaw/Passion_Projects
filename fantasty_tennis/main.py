@@ -138,7 +138,8 @@ def print_team_points(team_difference: dict):
     """
 
     for player in team_difference:
-        print(f"{player} gained {team_difference[player]} points")
+        if team_difference[player] != 0:
+            print(f"{player} gained {team_difference[player]} points")
 
 def export_dict_to_csv(players_dict: dict):
     """Takes the dictionary of player names and points and saves the data as a csv
