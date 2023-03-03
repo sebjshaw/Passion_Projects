@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 import bs4
 import csv
 
+import sqlwrapper
+
 URLS = {
     "0-50":"https://www.tennisexplorer.com/ranking/atp-men/?t=race", 
     "51-100":"https://www.tennisexplorer.com/ranking/atp-men/?t=race&page=2",
@@ -26,7 +28,22 @@ MY_TEAM = [
     'Andy Murray', 'Nikoloz Basilashvili'
     ]
 
+def connect_to_database(path: str) -> sqlwrapper.SQLConnection: 
+    """Establishes a connection with the local database to allow querying of the data  
 
+    Args:
+        path (str): the path to the database
+
+    Returns:
+        sqlwrapper.SQLConnection: the connection established with the database
+    """
+
+    try:
+        db = sqlwrapper.SQLConnection(path)
+    except:
+        print("Connection failed")
+    
+    return db
 
 def import_csv_as_dict() -> dict:
 
@@ -158,6 +175,9 @@ def export_dict_to_csv(players_dict: dict):
 
 
 if __name__ == "__main__":
+
+    # establish connection with SQLite database 
+    db = connect_to_database('./fantasy_tennis/players_points.db')
 
     # import last weeks points from csv 
     last_week = import_csv_as_dict()

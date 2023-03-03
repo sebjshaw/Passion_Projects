@@ -1,2 +1,4 @@
 .ipynb_checkpoints
 .DS_Store
+*players_points.db
+*__pycache__/
