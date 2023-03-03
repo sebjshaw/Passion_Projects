@@ -160,7 +160,7 @@ def create_dataframe_of_weeks_points(player_names: list, player_points: list) ->
 
     week_begin = str((datetime.today() - relativedelta(weekday=MO(-1))).date())
     week_begin_list = [week_begin for i in range(250)]
-    df = pd.DataFrame(list(zip(new_player_names, player_points, week_begin_list)), columns=['player_name', 'player_points', 'week_begin'])
+    df = pd.DataFrame(list(zip(new_player_names, player_points, week_begin_list)), columns=['player_name', 'player_total_points', 'week_begin'])
 
     return df
 
