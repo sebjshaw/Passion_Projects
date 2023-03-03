@@ -7,7 +7,9 @@ import requests
 from bs4 import BeautifulSoup
 import bs4
 import csv
-
+import pandas as pd
+from datetime import datetime
+from dateutil.relativedelta import relativedelta, MO
 import sqlwrapper
 
 URLS = {
@@ -80,31 +82,17 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list)
         list: a list of the desired values  
     """
 
-    for value in soup.find_all("td", class_=class_name)[:50]:
+    iter = 50
+
+    # changes iterations to 51 to account for the string 'points' being included 
+    # in the list when the specified tags are retrieved
+    if class_name == CLASSES[1]:
+        iter = 51
+
+    for value in soup.find_all("td", class_=class_name)[:iter]:
         values.append(value.text)
 
     return values 
-
-def create_current_players_points_dictionary(player_names: list, player_points: list) -> dict:
-    """Creates a dictionary of players with key value pairs of player name and player points 
-
-    Args:
-        player_names (list): List of all the player names
-        player_points (list): List of all the player points 
-
-    Returns:
-        dict: key value pairs of names and points  
-    """ 
-    players = {}
-
-    for name, points in zip(player_names, player_points):
-        split_name = name.split(' ') # splits name 
-        first_name = split_name[len(split_name) - 1] # takes last word (the players first name)
-        last_name = name.replace(f' {first_name}', '') # removes first name from original string to leave last name only 
-        name = f"{first_name} {last_name}" # recombines first and last name in usual order
-        players[name] = points
-    
-    return players
 
 def create_points_difference_dict(last_week: dict, current_week: dict) -> dict:
     """Creates a dictionary of the weekly points difference 
@@ -162,16 +150,20 @@ def create_team_points_txt(team_difference: dict):
             f.write(f"{player} gained {team_difference[player]} points \n")
                 # print(f"{player} gained {team_difference[player]} points")
 
-def export_dict_to_csv(players_dict: dict):
-    """Takes the dictionary of player names and points and saves the data as a csv
+def create_dataframe_of_weeks_points(player_names: list, player_points: list) -> pd.DataFrame:
+    new_player_names = []
+    for name in player_names:
+        split_name = name.split(' ') # splits name 
+        first_name = split_name[len(split_name) - 1] # takes last word (the players first name)
+        last_name = name.replace(f' {first_name}', '') # removes first name from original string to leave last name only 
+        new_player_names.append(f"{first_name} {last_name}") # recombines first and last name and adds to new list
 
-    Args:
-        players_dict (dict): dictionary of players names and points
-    """
+    week_begin = str((datetime.today() - relativedelta(weekday=MO(-1))).date())
+    week_begin_list = [week_begin for i in range(250)]
+    df = pd.DataFrame(list(zip(new_player_names, player_points, week_begin_list)), columns=['player_name', 'player_points', 'week_begin'])
 
-    with open('/Users/seb/Desktop/passion_projects/fantasy_tennis/players.csv', 'w') as f:
-        for player in players_dict:
-            f.write(f"{player},{players_dict[player]}\n")
+    return df
+
 
 
 if __name__ == "__main__":
@@ -191,17 +183,18 @@ if __name__ == "__main__":
         current_week_points = parse_tags_from_soup(soup, CLASSES[1], current_week_points)
         current_week_points.remove('Points')
 
-    # parse player names and points into dictionary
-    current_week = create_current_players_points_dictionary(current_week_names, current_week_points)
 
-    # create a dictionary of players and weekly points difference 
-    difference = create_points_difference_dict(last_week, current_week)
+    df_current_week = create_dataframe_of_weeks_points(current_week_names, current_week_points)
+    db.append(df_current_week)
 
-    # dictionary of player differences in team 
-    team_difference = return_points_difference_for_team(MY_TEAM, difference)
+    # # create a dictionary of players and weekly points difference 
+    # difference = create_points_difference_dict(last_week, current_week)
+
+    # # dictionary of player differences in team 
+    # team_difference = return_points_difference_for_team(MY_TEAM, difference)
     
-    create_team_points_txt(team_difference)
+    # create_team_points_txt(team_difference)
 
-    # save current weeks points as new csv
-    export_dict_to_csv(current_week)
+    # # save current weeks points as new csv
+    # export_dict_to_csv(current_week)
     

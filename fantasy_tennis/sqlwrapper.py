@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 
 
 class SQLConnection:
@@ -22,3 +23,17 @@ class SQLConnection:
             return res
         except:
             return (f"Error executing {query}")
+        
+    def append(self, df: pd.DataFrame):
+        """Takes the new total points from the most recent week and adds them to the table
+
+        Args:
+            df (pd.DataFrame): the pandas dataframe to be added to the table
+        """
+
+        try:
+            df.to_sql('players_points', self.conn, if_exists='append', index=False)
+            self.conn.commit()
+            return('Successfully appended new points totals')
+        except:
+            return('Failed to append to table')
