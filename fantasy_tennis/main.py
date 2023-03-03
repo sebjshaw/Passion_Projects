@@ -70,18 +70,17 @@ def get_html_soup(url:str) -> bs4.BeautifulSoup:
     soup = BeautifulSoup(website.content, 'html.parser')
     return soup
 
-def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list) -> list:
+def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
     """Adds the text of the specified tags to a list 
 
     Args:
         soup (bs4.BeautifulSoup): The web page html soup
         class_name (str): The name of the class that is being searched 
-        values (list): The list of values to be added to 
 
     Returns:
         list: a list of the desired values  
     """
-
+    values = []
     iter = 50
 
     # changes iterations to 51 to account for the string 'points' being included 
@@ -164,6 +163,16 @@ def create_dataframe_of_weeks_points(player_names: list, player_points: list) ->
 
     return df
 
+def get_total_points_from_previous_week(db: sqlwrapper.SQLConnection) -> pd.DataFrame:
+
+    df = db.q(f"""
+    SELECT * 
+    FROM players_points
+    ORDER BY week_begin
+    LIMIT 250
+    """)
+
+    return df
 
 
 if __name__ == "__main__":
@@ -171,18 +180,16 @@ if __name__ == "__main__":
     # establish connection with SQLite database 
     db = connect_to_database('./fantasy_tennis/players_points.db')
 
-    # import last weeks points from csv 
-    last_week = import_csv_as_dict()
-    current_week_names = []
-    current_week_points = []
+    # import last weeks points from database
+    df_last_week = get_total_points_from_previous_week(db)
+    print(df_last_week)
 
     # for 1-50, 51-100 and 101-150, get player names and points
     for url in URLS:
         soup = get_html_soup(URLS[url])
-        current_week_names = parse_tags_from_soup(soup, CLASSES[0], current_week_names)
-        current_week_points = parse_tags_from_soup(soup, CLASSES[1], current_week_points)
+        current_week_names = parse_tags_from_soup(soup, CLASSES[0])
+        current_week_points = parse_tags_from_soup(soup, CLASSES[1])
         current_week_points.remove('Points')
-
 
     df_current_week = create_dataframe_of_weeks_points(current_week_names, current_week_points)
     db.append(df_current_week)
