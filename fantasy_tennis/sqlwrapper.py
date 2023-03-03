@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from typing import Union
 
 
 class SQLConnection:
@@ -8,17 +9,18 @@ class SQLConnection:
         self.conn = sqlite3.connect(path)
         self.cursor = self.conn.cursor()
 
-    def q(self, query: str) -> tuple:
+    def q(self, query: str) -> Union[pd.DataFrame, str]:
         """Takes a query and executes it returning the result of the query
 
         Args:
             query (str): the query to be executed on the database 
 
         Returns:
-            tuple: returns the result of the query 
+            pd.DataFrame: returns the result of the query 
         """
         try:
             res = self.cursor.execute(query)
+            res = pd.read_sql_query(query, self.conn)
             self.conn.commit()
             return res
         except:
