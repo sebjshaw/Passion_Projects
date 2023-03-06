@@ -9,7 +9,7 @@ class SQLConnection:
         self.conn = sqlite3.connect(path)
         self.cursor = self.conn.cursor()
 
-    def q(self, query: str) -> Union[pd.DataFrame, str]:
+    def select(self, query: str) -> Union[pd.DataFrame, str]:
         """Takes a query and executes it returning the result of the query
 
         Args:
@@ -26,6 +26,22 @@ class SQLConnection:
         except:
             return (f"Error executing {query}")
         
+    def q(self, query: str) -> str:
+        """Execute a generic query that doesn't need the response as a dataframe 
+
+        Args:
+            query (str): the query to the database as a string 
+
+        Returns:
+            str: outcome of the query (successful or not?)
+        """
+        try: 
+            self.cursor.execute(query)
+            self.conn.commit()
+            return (f"Successfully executes {query}")
+        except:
+            return (f"Error executing {query}")
+        
     def append(self, df: pd.DataFrame):
         """Takes the new total points from the most recent week and adds them to the table
 
@@ -34,8 +50,8 @@ class SQLConnection:
         """
 
         try:
-            df.to_sql('player_points', self.conn, if_exists='append', index=False)
+            df.to_sql('players_points', self.conn, if_exists='append', index=False)
             self.conn.commit()
             return('Successfully appended new points totals')
         except:
-            return('Failed to append to table')
+            return('New points already uploaded this week')

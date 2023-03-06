@@ -21,8 +21,8 @@ def connect_to_database(path: str) -> sqlwrapper.SQLConnection:
 db = connect_to_database('./fantasy_tennis/players_points.db')
 
 
-res = db.q("""
-SELECT * FROM player_points
+res = db.select("""
+SELECT * FROM players_points
 WHERE player_name == 'Andy Murray'
 ORDER BY week_begin 
 """)
