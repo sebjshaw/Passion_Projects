@@ -47,15 +47,16 @@ def connect_to_database(path: str) -> sqlwrapper.SQLConnection:
     
     return db
 
-def import_csv_as_dict() -> dict:
+def create_dataframe_of_last_weeks_total_points(db: sqlwrapper.SQLConnection) -> pd.DataFrame:
 
-    last_week_points = {}
-    with open('/Users/seb/Desktop/passion_projects/fantasy_tennis/players.csv', 'r') as f:
-        for row in f:
-            data = row.split(',')
-            last_week_points[data[0]] = data[1][:-1]
+    df = db.q(f"""
+    SELECT * 
+    FROM players_points
+    ORDER BY week_begin
+    LIMIT 250
+    """)
 
-    return last_week_points
+    return df
 
 def get_html_soup(url:str) -> bs4.BeautifulSoup:
     """Takes the link to a website and returns the html in soup format 
@@ -70,7 +71,7 @@ def get_html_soup(url:str) -> bs4.BeautifulSoup:
     soup = BeautifulSoup(website.content, 'html.parser')
     return soup
 
-def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
+def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str, values: list) -> list:
     """Adds the text of the specified tags to a list 
 
     Args:
@@ -80,7 +81,6 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
     Returns:
         list: a list of the desired values  
     """
-    values = []
     iter = 50
 
     # changes iterations to 51 to account for the string 'points' being included 
@@ -93,27 +93,50 @@ def parse_tags_from_soup(soup: bs4.BeautifulSoup, class_name: str) -> list:
 
     return values 
 
-def create_points_difference_dict(last_week: dict, current_week: dict) -> dict:
+def create_dataframe_of_this_weeks_total_points(player_names: list, player_points: list) -> pd.DataFrame:
+    new_player_names = []
+    for name in player_names:
+        split_name = name.split(' ') # splits name 
+        first_name = split_name[len(split_name) - 1] # takes last word (the players first name)
+        last_name = name.replace(f' {first_name}', '') # removes first name from original string to leave last name only 
+        new_player_names.append(f"{first_name} {last_name}") # recombines first and last name and adds to new list
+
+    week_begin = str((datetime.today() - relativedelta(weekday=MO(-1))).date())
+    week_begin_list = [week_begin for i in range(250)]
+    df = pd.DataFrame(list(zip(new_player_names, player_points, week_begin_list)), columns=['player_name', 'player_total_points', 'week_begin'])
+
+    return df
+
+def create_points_difference_dict(df_last_week: pd.DataFrame, df_current_week: pd.DataFrame) -> dict:
     """Creates a dictionary of the weekly points difference 
 
     Args:
-        last_week (dict): the points of the player last week 
-        current_week (dict): the points of the player this week 
+        df_last_week (pd.DataFrame): the total points of the players last week 
+        df_current_week (pd.DataFrame): the total points of the players this week 
 
     Returns:
         dict: the difference between last weeks points and this weeks 
     """
 
     difference = {}
-    try:
-        for player in current_week:
-            difference[player] = int(current_week[player]) - int(last_week[player])
-    except:
-        print(f"{player} not in top 150 for consecutive weeks")
+    # try:
+    #     for player in current_week:
+    #         difference[player] = int(current_week[player]) - int(last_week[player])
+    # except:
+    #     print(f"{player} not in top 150 for consecutive weeks")
+
+    for player in df_current_week['player_name']:
+        try:
+            current_points = df_current_week[df_current_week['player_name'] == player].values[0][1]
+            last_week_points = df_last_week[df_last_week['player_name'] == player].values[0][1]
+            difference[player] = int(current_points) - int(last_week_points)
+        except:
+            print('Unable to retrieve player info')
+
 
     return difference 
 
-def return_points_difference_for_team(team: list, difference: dict) -> dict:
+def return_team_points_differences(team: list, difference: dict) -> dict:
     """Returns the points difference for the players in the specified fantasy team
 
     Args:
@@ -149,59 +172,33 @@ def create_team_points_txt(team_difference: dict):
             f.write(f"{player} gained {team_difference[player]} points \n")
                 # print(f"{player} gained {team_difference[player]} points")
 
-def create_dataframe_of_weeks_points(player_names: list, player_points: list) -> pd.DataFrame:
-    new_player_names = []
-    for name in player_names:
-        split_name = name.split(' ') # splits name 
-        first_name = split_name[len(split_name) - 1] # takes last word (the players first name)
-        last_name = name.replace(f' {first_name}', '') # removes first name from original string to leave last name only 
-        new_player_names.append(f"{first_name} {last_name}") # recombines first and last name and adds to new list
-
-    week_begin = str((datetime.today() - relativedelta(weekday=MO(-1))).date())
-    week_begin_list = [week_begin for i in range(250)]
-    df = pd.DataFrame(list(zip(new_player_names, player_points, week_begin_list)), columns=['player_name', 'player_total_points', 'week_begin'])
-
-    return df
-
-def get_total_points_from_previous_week(db: sqlwrapper.SQLConnection) -> pd.DataFrame:
-
-    df = db.q(f"""
-    SELECT * 
-    FROM players_points
-    ORDER BY week_begin
-    LIMIT 250
-    """)
-
-    return df
-
 
 if __name__ == "__main__":
 
     # establish connection with SQLite database 
     db = connect_to_database('./fantasy_tennis/players_points.db')
 
+    current_week_names = []
+    current_week_points = []
+
     # import last weeks points from database
-    df_last_week = get_total_points_from_previous_week(db)
-    print(df_last_week)
+    df_last_week = create_dataframe_of_last_weeks_total_points(db)
 
     # for 1-50, 51-100 and 101-150, get player names and points
     for url in URLS:
         soup = get_html_soup(URLS[url])
-        current_week_names = parse_tags_from_soup(soup, CLASSES[0])
-        current_week_points = parse_tags_from_soup(soup, CLASSES[1])
+        current_week_names = parse_tags_from_soup(soup, CLASSES[0], current_week_names)
+        current_week_points = parse_tags_from_soup(soup, CLASSES[1], current_week_points)
         current_week_points.remove('Points')
 
-    df_current_week = create_dataframe_of_weeks_points(current_week_names, current_week_points)
+    df_current_week = create_dataframe_of_this_weeks_total_points(current_week_names, current_week_points)
     db.append(df_current_week)
 
-    # # create a dictionary of players and weekly points difference 
-    # difference = create_points_difference_dict(last_week, current_week)
+    # create a dictionary of players and weekly points difference 
+    difference = create_points_difference_dict(df_last_week, df_current_week)
 
-    # # dictionary of player differences in team 
-    # team_difference = return_points_difference_for_team(MY_TEAM, difference)
+    # dictionary of player differences in team 
+    team_difference = return_team_points_differences(MY_TEAM, difference)
     
-    # create_team_points_txt(team_difference)
-
-    # # save current weeks points as new csv
-    # export_dict_to_csv(current_week)
+    create_team_points_txt(team_difference)
     
