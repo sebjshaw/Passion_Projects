@@ -49,11 +49,12 @@ def connect_to_database(path: str) -> sqlwrapper.SQLConnection:
 
 def create_dataframe_of_last_weeks_total_points(db: sqlwrapper.SQLConnection) -> pd.DataFrame:
 
+    week_begin = str((datetime.today() - relativedelta(weekday=MO(-2))).date())
+
     df = db.q(f"""
     SELECT * 
     FROM players_points
-    ORDER BY week_begin
-    LIMIT 250
+    WHERE week_begin == '{week_begin}'
     """)
 
     return df
@@ -107,7 +108,7 @@ def create_dataframe_of_this_weeks_total_points(player_names: list, player_point
 
     return df
 
-def create_points_difference_dict(df_last_week: pd.DataFrame, df_current_week: pd.DataFrame) -> dict:
+def create_weeks_points_dict(df_last_week: pd.DataFrame, df_current_week: pd.DataFrame) -> dict:
     """Creates a dictionary of the weekly points difference 
 
     Args:
@@ -119,11 +120,6 @@ def create_points_difference_dict(df_last_week: pd.DataFrame, df_current_week: p
     """
 
     difference = {}
-    # try:
-    #     for player in current_week:
-    #         difference[player] = int(current_week[player]) - int(last_week[player])
-    # except:
-    #     print(f"{player} not in top 150 for consecutive weeks")
 
     for player in df_current_week['player_name']:
         try:
@@ -131,12 +127,13 @@ def create_points_difference_dict(df_last_week: pd.DataFrame, df_current_week: p
             last_week_points = df_last_week[df_last_week['player_name'] == player].values[0][1]
             difference[player] = int(current_points) - int(last_week_points)
         except:
-            print('Unable to retrieve player info')
+            difference[player] = (f'{player} entered top 250 this week')
+
 
 
     return difference 
 
-def return_team_points_differences(team: list, difference: dict) -> dict:
+def create_team_weeks_points_dict(team: list, weeks_points: dict) -> dict:
     """Returns the points difference for the players in the specified fantasy team
 
     Args:
@@ -150,16 +147,13 @@ def return_team_points_differences(team: list, difference: dict) -> dict:
     team_points = {}
     for player in team:
         try:
-            team_points[player] = difference[player]
+            team_points[player] = weeks_points[player]
         except:
-            team_points[player] = 0
-            with open("team_points.txt", "w") as f:
-                f.write(f"{player} currently not in top 250 or fallen out of top 250 \n")
-            # print(f"{player} currently not in top 250 or fallen out of top 250")
+            team_points[player] = (f"{player} not entered top 250 yet or fallen out of it")
     
     return team_points
 
-def create_team_points_txt(team_difference: dict):
+def create_team_points_txt(team_points: dict):
     """Print the team and the points one this week in an aesthetic manner
 
     Args:
@@ -167,10 +161,11 @@ def create_team_points_txt(team_difference: dict):
     """
 
     with open("team_points.txt", "w") as f:
-        for player in team_difference:
-            # if team_difference[player] != 0:
-            f.write(f"{player} gained {team_difference[player]} points \n")
-                # print(f"{player} gained {team_difference[player]} points")
+        for player in team_points:
+            if isinstance(team_points[player], int): 
+                f.write(f"{player} gained {team_points[player]} points \n")
+            else:
+                f.write(f"{team_points[player]} \n")
 
 
 if __name__ == "__main__":
@@ -192,13 +187,13 @@ if __name__ == "__main__":
         current_week_points.remove('Points')
 
     df_current_week = create_dataframe_of_this_weeks_total_points(current_week_names, current_week_points)
-    db.append(df_current_week)
+    # print(db.append(df_current_week))
 
     # create a dictionary of players and weekly points difference 
-    difference = create_points_difference_dict(df_last_week, df_current_week)
+    weeks_points = create_weeks_points_dict(df_last_week, df_current_week)
 
     # dictionary of player differences in team 
-    team_difference = return_team_points_differences(MY_TEAM, difference)
+    team_points = create_team_weeks_points_dict(MY_TEAM, weeks_points)
     
-    create_team_points_txt(team_difference)
+    create_team_points_txt(team_points)
     
