@@ -34,7 +34,7 @@ class SQLConnection:
         """
 
         try:
-            df.to_sql('players_points', self.conn, if_exists='append', index=False)
+            df.to_sql('player_points', self.conn, if_exists='append', index=False)
             self.conn.commit()
             return('Successfully appended new points totals')
         except:

@@ -6,7 +6,6 @@ from urllib.request import urlopen
 import requests 
 from bs4 import BeautifulSoup
 import bs4
-import csv
 import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta, MO
