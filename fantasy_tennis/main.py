@@ -50,7 +50,7 @@ def create_dataframe_of_last_weeks_total_points(db: sqlwrapper.SQLConnection) ->
 
     week_begin = str((datetime.today() - relativedelta(weekday=MO(-2))).date())
 
-    df = db.q(f"""
+    df = db.select(f"""
     SELECT * 
     FROM players_points
     WHERE week_begin == '{week_begin}'
@@ -119,7 +119,7 @@ def create_weeks_points_dict(df_last_week: pd.DataFrame, df_current_week: pd.Dat
     """
 
     difference = {}
-
+    
     for player in df_current_week['player_name']:
         try:
             current_points = df_current_week[df_current_week['player_name'] == player].values[0][1]
