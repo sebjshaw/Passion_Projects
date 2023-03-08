@@ -22,9 +22,8 @@ db = connect_to_database('./fantasy_tennis/players_points.db')
 
 
 res = db.select("""
-SELECT * FROM players_points
-WHERE player_name == 'Andy Murray'
-ORDER BY week_begin 
+    SELECT * FROM players_points
+    WHERE player_name == 'Novak Djokovic'
 """)
 
 print(res)
