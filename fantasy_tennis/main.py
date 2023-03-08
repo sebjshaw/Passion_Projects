@@ -159,7 +159,7 @@ def create_team_points_txt(team_points: dict):
         team_difference (dict): Team points difference from last week 
     """
 
-    with open("team_points.txt", "w") as f:
+    with open("/Users/seb/Desktop/passion_projects/fantasy_tennis/team_points.txt", "w") as f:
         for player in team_points:
             if isinstance(team_points[player], int): 
                 f.write(f"{player} gained {team_points[player]} points \n")
@@ -170,7 +170,7 @@ def create_team_points_txt(team_points: dict):
 if __name__ == "__main__":
 
     # establish connection with SQLite database 
-    db = connect_to_database('./fantasy_tennis/players_points.db')
+    db = connect_to_database('/Users/seb/Desktop/passion_projects/fantasy_tennis/players_points.db')
 
     current_week_names = []
     current_week_points = []
