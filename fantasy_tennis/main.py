@@ -47,13 +47,19 @@ def connect_to_database(path: str) -> sqlwrapper.SQLConnection:
     return db
 
 def create_dataframe_of_last_weeks_total_points(db: sqlwrapper.SQLConnection) -> pd.DataFrame:
+    """Queries the points totals from the previous week to help with calculation 
 
-    week_begin = str((datetime.today() - relativedelta(weekday=MO(-2))).date())
+    Args:
+        db (sqlwrapper.SQLConnection): the connection established with the database
+
+    Returns:
+        pd.DataFrame: dataframe of last weeks points totals
+    """
 
     df = db.select(f"""
-    SELECT * 
-    FROM players_points
-    WHERE week_begin == '{week_begin}'
+    SELECT * FROM players_points
+    ORDER BY week_begin DESC
+    LIMIT 250
     """)
 
     return df
