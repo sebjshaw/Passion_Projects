@@ -192,6 +192,7 @@ if __name__ == "__main__":
         current_week_points.remove('Points')
 
     df_current_week = create_dataframe_of_this_weeks_total_points(current_week_names, current_week_points)
+    print(df_current_week)
     print(db.append(df_current_week))
     
     # create a dictionary of players and weekly points difference 

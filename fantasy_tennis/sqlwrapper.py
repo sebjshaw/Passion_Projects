@@ -6,7 +6,7 @@ from typing import Union
 class SQLConnection:
 
     def __init__(self, path) -> None:
-        self.conn = sqlite3.connect(path)
+        self.conn = sqlite3.connect(path, timeout=1)
         self.cursor = self.conn.cursor()
 
     def select(self, query: str) -> Union[pd.DataFrame, str]:
@@ -53,5 +53,5 @@ class SQLConnection:
             df.to_sql('players_points', self.conn, if_exists='append', index=False)
             self.conn.commit()
             return('Successfully appended new points totals')
-        except:
-            return('New points already uploaded this week')
+        except Exception as e:
+            return('Points already added for this week')
