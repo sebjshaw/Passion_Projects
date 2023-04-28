@@ -23,8 +23,9 @@ class SQLConnection:
             res = pd.read_sql_query(query, self.conn)
             self.conn.commit()
             return res
-        except:
-            return (f"Error executing {query}")
+        except Exception as e:
+            return (e)
+            # return (f"Error executing {query}")
         
     def q(self, query: str) -> str:
         """Execute a generic query that doesn't need the response as a dataframe 
