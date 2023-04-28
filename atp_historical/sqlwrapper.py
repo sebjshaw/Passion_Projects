@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-from typing import Union
+from typing import List, Optional, Union
 from uuid import uuid4
 
 
